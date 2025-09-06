@@ -11,13 +11,13 @@ return new class extends Migration {
         Schema::create('loads', function (Blueprint $table) {
             $table->id();
             $table->foreignId('shipper_id')->constrained('users')->cascadeOnDelete();
-            $table->string('origin_country', 3);
-            $table->string('origin_city');
-            $table->string('destination_country', 3);
-            $table->string('destination_city');
-            $table->date('pickup_date');
-            $table->date('delivery_date');
-            $table->unsignedInteger('weight_kg');
+            $table->string('origin_country', 3)->nullable();
+            $table->string('origin_city')->nullable();
+            $table->string('destination_country', 3)->nullable();
+            $table->string('destination_city')->nullable();
+            $table->date('pickup_date')->nullable();
+            $table->date('delivery_date')->nullable();
+            $table->unsignedInteger('weight_kg')->nullable();
             $table->unsignedInteger('price_expectation')->nullable();
             $table->enum('status', array_map(fn($c) => $c->value, LoadStatus::cases()))
                 ->default(LoadStatus::Draft->value)
