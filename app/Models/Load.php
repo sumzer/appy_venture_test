@@ -2,6 +2,7 @@
 namespace App\Models;
 
 use App\Enums\LoadStatus;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Casts\Alpha3Country;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class Load extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasFactory;
 
     protected $fillable = [
         'shipper_id',
