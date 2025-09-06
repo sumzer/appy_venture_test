@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreLoadRequest;
-use App\Http\Requests\UpdateLoadRequest;
+use App\Http\Requests\Load\StoreLoadRequest;
+use App\Http\Requests\Load\UpdateLoadRequest;
 use App\Models\Load;
-use App\Http\Requests\IndexLoadRequest;
+use App\Http\Requests\Load\IndexLoadRequest;
 use App\Http\Resources\LoadResource;
 use App\Http\Concerns\ValidatesETag;
 

@@ -1,10 +1,8 @@
 <?php
-namespace App\Http\Requests;
+namespace App\Http\Requests\Bid;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use App\Models\Load;
-use App\Models\Bid;
 
 class StoreBidRequest extends FormRequest
 {
@@ -19,8 +17,8 @@ class StoreBidRequest extends FormRequest
             'amount' => ['required', 'integer', 'min:1'],
             'message' => ['nullable', 'string', 'max:2000'],
             Rule::unique('bids')->where(
-                fn($q) =>
-                $q->where('load_id', $load->id)
+                fn($query) =>
+                $query->where('load_id', $load->id)
                     ->where('carrier_id', $this->user()->id)
             ),
         ];

@@ -7,7 +7,7 @@ use App\Models\Bid;
 use App\Models\Booking;
 use App\Enums\BidStatus;
 use App\Enums\LoadStatus;
-use App\Http\Requests\StoreBidRequest;
+use App\Http\Requests\Bid\StoreBidRequest;
 use App\Http\Resources\BidResource;
 use App\Http\Resources\LoadResource;
 use Illuminate\Http\Request;
