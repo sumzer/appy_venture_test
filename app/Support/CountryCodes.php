@@ -46,4 +46,32 @@ class CountryCodes
 
         throw new \InvalidArgumentException("Invalid country code: $inputCode");
     }
+
+    public static function allAlpha3(): array
+    {
+        return collect((new ISO3166())->all())
+            ->pluck('alpha3')
+            ->unique()
+            ->values()
+            ->toArray();
+    }
+
+    public static function allAlpha2(): array
+    {
+        return collect((new ISO3166())->all())
+            ->pluck('alpha2')
+            ->unique()
+            ->values()
+            ->toArray();
+    }
+
+    public static function allValidCodes(): array
+    {
+        $iso = new ISO3166();
+        return collect($iso->all())
+            ->flatMap(fn($row) => [$row['alpha2'], $row['alpha3']])
+            ->unique()
+            ->values()
+            ->toArray();
+    }
 }

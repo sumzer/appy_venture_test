@@ -18,8 +18,8 @@ class IndexLoadRequest extends FormRequest
     {
         return [
             'status' => ['sometimes', Rule::in(array_map(fn($e) => $e->value, LoadStatus::cases()))],
-            'origin_country' => ['sometimes', new CountryCodes()],
-            'destination_country' => ['sometimes', new CountryCodes()],
+            'origin_country' => ['sometimes', 'nullable', Rule::in(CountryCodes::allValidCodes())],
+            'destination_country' => ['sometimes', 'nullable', Rule::in(CountryCodes::allValidCodes())],
 
             'pickup_from' => ['sometimes', 'date'],
             'pickup_to' => ['sometimes', 'date', 'after_or_equal:pickup_from'],
@@ -28,7 +28,7 @@ class IndexLoadRequest extends FormRequest
 
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
             'page' => ['sometimes', 'integer', 'min:1'],
-            'sort' => ['sometimes', Rule::in(['created_at', 'pickup_date', 'delivery_date'])],
+            'sort' => ['sometimes', 'nullable', Rule::in(['created_at', 'pickup_date', 'delivery_date'])],
             'order' => ['sometimes', Rule::in(['asc', 'desc'])],
         ];
     }
@@ -36,11 +36,12 @@ class IndexLoadRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'origin_country' => $this->origin_country ? strtoupper($this->origin_country) : null,
-            'destination_country' => $this->destination_country ? strtoupper($this->destination_country) : null,
+            'origin_country' => $this->origin_country ? CountryCodes::toAlpha3($this->origin_country) : null,
+            'destination_country' => $this->destination_country ? CountryCodes::toAlpha3($this->destination_country) : null,
             'per_page' => $this->per_page ?? 20,
             'page' => $this->page ?? 1,
-            'sort' => $this->sort ?? 'desc',
+            'sort' => $this->sort ?? 'created_at',
+            'order' => $this->order ?? 'desc',
         ]);
     }
 
