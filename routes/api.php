@@ -14,7 +14,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/loads/{load}', [LoadController::class, 'destroy']);
 
     // Bids
-    // Route::post('/loads/{load}/bids', [BidController::class, 'store']);
-    // Route::get('/loads/{load}/bids', [BidController::class, 'indexForLoad']);
-    // Route::post('/bids/{bid}/accept', [BidController::class, 'accept']);
+    Route::post('/loads/{load}/bids', [BidController::class, 'store']);
+    Route::get('/loads/{load}/bids', [BidController::class, 'index']);
+    Route::post('/bids/{bid}/accept', [BidController::class, 'accept']);
 });
