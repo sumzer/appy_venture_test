@@ -57,10 +57,23 @@ class UpdateLoadRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $this->merge([
-            'origin_country' => $this->origin_country ? CountryCodes::toAlpha3($this->origin_country) : null,
-            'destination_country' => $this->destination_country ? CountryCodes::toAlpha3($this->destination_country) : null,
-        ]);
+        if ($this->has('origin_country')) {
+            $val = $this->input('origin_country');
+            $this->merge([
+                'origin_country' => ($val === null || $val === '')
+                    ? null
+                    : CountryCodes::toAlpha3($val),
+            ]);
+        }
+
+        if ($this->has('destination_country')) {
+            $val = $this->input('destination_country');
+            $this->merge([
+                'destination_country' => ($val === null || $val === '')
+                    ? null
+                    : CountryCodes::toAlpha3($val),
+            ]);
+        }
     }
 
     private function ruleRequiredUnlessDraft(bool $isOpening, array $rules): array
