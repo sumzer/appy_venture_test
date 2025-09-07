@@ -50,7 +50,7 @@ class User extends Authenticatable
         ];
     }
 
-    public function isSipper(): bool
+    public function isShipper(): bool
     {
         return $this->role === Role::Shipper;
     }

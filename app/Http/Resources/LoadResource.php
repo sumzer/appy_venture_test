@@ -24,24 +24,6 @@ class LoadResource extends JsonResource
             'shipper' => new UserResource($this->whenLoaded('shipper')),
             'booking' => new BookingResource($this->whenLoaded('booking')),
             'accepted_bid' => new BidResource($this->whenLoaded('acceptedBid')),
-
-            // 'accepted_bid' => $this->when(
-            //     $this->relationLoaded('booking') && optional($this->booking)->relationLoaded('bid'),
-            //     fn() => $this->booking?->bid ? new BidResource($this->booking->bid) : null
-            // ),
-
-            // 'shipper' => [
-            //     'id' => $this->shipper->id,
-            //     'name' => $this->shipper->name,
-            //     'email' => $this->shipper->email,
-            // ],
-            // 'booking' => $this->whenLoaded('booking', function () {
-            //     return [
-            //         'id' => $this->booking->id,
-            //         'carrier_id' => $this->booking->carrier_id,
-            //         'booked_at' => $this->booking->booked_at?->toDateTimeString(),
-            //     ];
-            // }),
         ];
     }
 }

@@ -20,8 +20,12 @@ class BidPolicy
 
     public function accept(User $user, Bid $bid): bool
     {
-        return $user->id === $bid->load->shipper_id
-            && $bid->load->status === LoadStatus::Open
-            && !$bid->load->booking;
+        $load = $bid->freight;
+        if (!$load)
+            return false;
+
+        return $user->id === $load->shipper_id
+            && $load->status === LoadStatus::Open
+            && !$load->booking;
     }
 }

@@ -17,17 +17,13 @@ class Bid extends Model
         'status' => BidStatus::class
     ];
 
-    public function getLoadAttribute()
-    {
-        return $this->loadRelation;
-    }
-
-    public function loadRelation()
-    {
-        return $this->belongsTo(Load::class);
-    }
     public function carrier()
     {
         return $this->belongsTo(User::class, 'carrier_id');
+    }
+
+    public function freight()
+    {
+        return $this->belongsTo(Load::class, 'load_id');
     }
 }

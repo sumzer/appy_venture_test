@@ -60,10 +60,10 @@ class BidController extends Controller
     {
         $this->authorize('accept', $bid);
 
-        $this->validateETag($req, $bid->load);
+        $this->validateETag($req, $bid->freight);
 
         $updatedLoad = DB::transaction(function () use ($bid) {
-            $load = $bid->load()->lockForUpdate()->first();
+            $load = $bid->freight()->lockForUpdate()->first();
 
             Bid::where('load_id', $load->id)
                 ->where('id', '!=', $bid->id)

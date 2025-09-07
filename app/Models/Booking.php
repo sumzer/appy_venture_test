@@ -18,15 +18,6 @@ class Booking extends Model
         'booked_at' => 'datetime'
     ];
 
-    public function getLoadAttribute()
-    {
-        return $this->loadRelation;
-    }
-
-    public function loadRelation()
-    {
-        return $this->belongsTo(Load::class);
-    }
     public function bid()
     {
         return $this->belongsTo(Bid::class);
@@ -34,5 +25,10 @@ class Booking extends Model
     public function carrier()
     {
         return $this->belongsTo(User::class, 'carrier_id');
+    }
+
+    public function freight()
+    {
+        return $this->belongsTo(Load::class, 'load_id');
     }
 }

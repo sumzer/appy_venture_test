@@ -52,6 +52,12 @@ class Load extends Model
         return 'W/"load-' . $this->id . '-' . $this->version . '"';
     }
 
+    public function acceptedBid()
+    {
+        return $this->hasOne(\App\Models\Bid::class)
+            ->where('status', \App\Enums\BidStatus::Accepted->value);
+    }
+
     public function scopeFilter(Builder $query, array $filters): Builder
     {
         $map = [
@@ -73,11 +79,5 @@ class Load extends Model
             }
         }
         return $query;
-    }
-
-    public function acceptedBid()
-    {
-        return $this->hasOne(\App\Models\Bid::class)
-            ->where('status', \App\Enums\BidStatus::Accepted->value);
     }
 }
