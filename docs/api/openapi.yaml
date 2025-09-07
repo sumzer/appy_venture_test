@@ -1,0 +1,573 @@
+openapi: 3.1.0
+info:
+  title: Appy Venture API
+  version: 1.0.0
+  description: Minimal freight marketplace API with Loads, Bids, Booking and ETag/If-Match optimistic concurrency.
+
+servers:
+  - url: http://localhost:8000
+
+tags:
+  - name: Auth
+  - name: Loads
+  - name: Bids
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/register:
+    post:
+      tags: [Auth]
+      summary: Register a user
+      description: Public endpoint to register a new user (shipper or carrier).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+
+  /api/login:
+    post:
+      tags: [Auth]
+      summary: Login
+      description: Public endpoint returning a bearer token (Sanctum/JWT).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/logout:
+    post:
+      tags: [Auth]
+      summary: Logout
+      responses:
+        '204':
+          description: No Content (token revoked)
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/loads:
+    get:
+      tags: [Loads]
+      summary: List loads
+      parameters:
+        - $ref: '#/components/parameters/Status'
+        - $ref: '#/components/parameters/OriginCountry'
+        - $ref: '#/components/parameters/DestinationCountry'
+        - $ref: '#/components/parameters/PickupFrom'
+        - $ref: '#/components/parameters/PickupTo'
+        - $ref: '#/components/parameters/DeliveryFrom'
+        - $ref: '#/components/parameters/DeliveryTo'
+        - $ref: '#/components/parameters/Sort'
+        - $ref: '#/components/parameters/Order'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: OK
+          headers:
+            Cache-Control:
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedLoads'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Loads]
+      summary: Create load (shipper only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoadCreate'
+      responses:
+        '201':
+          description: Created
+          headers:
+            ETag:
+              description: Weak ETag for the created Load (optimistic concurrency)
+              schema:
+                type: string
+                example: 'W/"load-1-1"'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoadResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/loads/{load}:
+    get:
+      tags: [Loads]
+      summary: Get a load
+      parameters:
+        - $ref: '#/components/parameters/LoadId'
+      responses:
+        '200':
+          description: OK
+          headers:
+            ETag:
+              description: Weak ETag of the Load
+              schema:
+                type: string
+                example: 'W/"load-3-1"'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoadResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    patch:
+      tags: [Loads]
+      summary: Update a load (optimistic concurrency)
+      description: |
+        Partial update. If status transitions to `open`, all business-required fields must be present.
+        Requires `If-Match` header with the current ETag of the load.
+      parameters:
+        - $ref: '#/components/parameters/LoadId'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoadUpdate'
+      responses:
+        '200':
+          description: OK
+          headers:
+            ETag:
+              schema:
+                type: string
+                example: 'W/"load-1-2"'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoadResponse'
+        '428':
+          description: If-Match required
+        '412':
+          description: ETag mismatch
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    delete:
+      tags: [Loads]
+      summary: Soft delete a load (owner shipper only)
+      description: Requires `If-Match` with current load ETag.
+      parameters:
+        - $ref: '#/components/parameters/LoadId'
+        - $ref: '#/components/parameters/IfMatch'
+      responses:
+        '204':
+          description: No Content (soft-deleted)
+        '428':
+          description: If-Match required
+        '412':
+          description: ETag mismatch
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/loads/{load}/bids:
+    get:
+      tags: [Bids]
+      summary: List bids for a load
+      parameters:
+        - $ref: '#/components/parameters/LoadId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBids'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Bids]
+      summary: Create a bid (carrier only)
+      parameters:
+        - $ref: '#/components/parameters/LoadId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BidCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BidResponse'
+        '409':
+          description: Duplicate bid (same carrier & load)
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/bids/{bid}/accept:
+    post:
+      tags: [Bids]
+      summary: Accept a bid (creates booking, rejects others)
+      description: Owner shipper only. Requires `If-Match` header of the related **Load**.
+      parameters:
+        - $ref: '#/components/parameters/BidId'
+        - $ref: '#/components/parameters/IfMatch'
+      responses:
+        '200':
+          description: OK (returns the updated Load)
+          headers:
+            ETag:
+              schema:
+                type: string
+                example: 'W/"load-3-2"'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoadResponse'
+        '428':
+          description: If-Match required
+        '412':
+          description: ETag mismatch
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    LoadId:
+      name: load
+      in: path
+      required: true
+      schema: { type: integer }
+    BidId:
+      name: bid
+      in: path
+      required: true
+      schema: { type: integer }
+    IfMatch:
+      in: header
+      name: If-Match
+      required: true
+      schema:
+        type: string
+        example: 'W/"load-3-1"'
+    Status:
+      in: query
+      name: status
+      schema:
+        type: string
+        enum: [draft, open, booked, closed]
+    OriginCountry:
+      in: query
+      name: origin_country
+      schema:
+        type: string
+        description: ISO 3166-1 alpha-3, e.g. ESP
+    DestinationCountry:
+      in: query
+      name: destination_country
+      schema:
+        type: string
+        description: ISO 3166-1 alpha-3, e.g. NLD
+    PickupFrom:
+      in: query
+      name: pickup_from
+      schema: { type: string, format: date }
+    PickupTo:
+      in: query
+      name: pickup_to
+      schema: { type: string, format: date }
+    DeliveryFrom:
+      in: query
+      name: delivery_from
+      schema: { type: string, format: date }
+    DeliveryTo:
+      in: query
+      name: delivery_to
+      schema: { type: string, format: date }
+    Sort:
+      in: query
+      name: sort
+      schema:
+        type: string
+        enum: [created_at, pickup_date, delivery_date]
+    Order:
+      in: query
+      name: order
+      schema:
+        type: string
+        enum: [asc, desc]
+        default: desc
+    Page:
+      in: query
+      name: page
+      schema: { type: integer, minimum: 1, default: 1 }
+    PerPage:
+      in: query
+      name: per_page
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+
+  responses:
+    Unauthorized:
+      description: Unauthenticated
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Unprocessable:
+      description: Validation error
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ValidationError' }
+
+  schemas:
+    # AUTH
+    RegisterRequest:
+      type: object
+      required: [name, email, password, role]
+      properties:
+        name: { type: string }
+        email: { type: string, format: email }
+        password: { type: string, format: password, minLength: 6 }
+        role:
+          type: string
+          enum: [shipper, carrier]
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, format: password }
+    AuthTokenResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: Bearer token to be used in Authorization header
+          example: 1|eyJhbGciOi...
+
+    # DOMAIN
+    Load:
+      type: object
+      properties:
+        id: { type: integer }
+        origin_country: { type: string, example: ESP, nullable: true }
+        origin_city: { type: string, nullable: true }
+        destination_country: { type: string, example: NLD, nullable: true }
+        destination_city: { type: string, nullable: true }
+        pickup_date: { type: string, format: date, nullable: true }
+        delivery_date: { type: string, format: date, nullable: true }
+        weight_kg: { type: integer, nullable: true }
+        price_expectation: { type: integer, nullable: true }
+        status: { $ref: '#/components/schemas/LoadStatus' }
+        version: { type: integer }
+        shipper:
+          type: object
+          nullable: true
+          properties:
+            id: { type: integer }
+            name: { type: string }
+            email: { type: string, format: email }
+            role: { type: string, example: shipper }
+        booking:
+          nullable: true
+        accepted_bid:
+          nullable: true
+    LoadStatus:
+      type: string
+      enum: [draft, open, booked, closed]
+
+    Bid:
+      type: object
+      properties:
+        id: { type: integer }
+        load_id: { type: integer }
+        carrier_id: { type: integer }
+        amount: { type: integer }
+        message: { type: string, nullable: true }
+        status: { $ref: '#/components/schemas/BidStatus' }
+        created_at: { type: string, format: date-time }
+        carrier:
+          type: object
+          properties:
+            id: { type: integer }
+            name: { type: string }
+            email: { type: string, format: email }
+            role: { type: string, example: carrier }
+    BidStatus:
+      type: string
+      enum: [pending, accepted, rejected]
+
+    Booking:
+      type: object
+      properties:
+        id: { type: integer }
+        load_id: { type: integer }
+        bid_id: { type: integer }
+        carrier_id: { type: integer }
+        booked_at: { type: string, format: date-time }
+
+    # REQUEST SCHEMAS
+    LoadCreate:
+      type: object
+      required: [status]
+      properties:
+        origin_country: { type: string, nullable: true }
+        origin_city: { type: string, nullable: true }
+        destination_country: { type: string, nullable: true }
+        destination_city: { type: string, nullable: true }
+        pickup_date: { type: string, format: date, nullable: true }
+        delivery_date: { type: string, format: date, nullable: true }
+        weight_kg: { type: integer, nullable: true }
+        price_expectation: { type: integer, nullable: true }
+        status: { $ref: '#/components/schemas/LoadStatus' }
+
+    LoadUpdate:
+      type: object
+      description: Partial update. If setting status to `open`, all required fields must be present.
+      properties:
+        origin_country: { type: string, nullable: true }
+        origin_city: { type: string, nullable: true }
+        destination_country: { type: string, nullable: true }
+        destination_city: { type: string, nullable: true }
+        pickup_date: { type: string, format: date, nullable: true }
+        delivery_date: { type: string, format: date, nullable: true }
+        weight_kg: { type: integer, nullable: true }
+        price_expectation: { type: integer, nullable: true }
+        status: { $ref: '#/components/schemas/LoadStatus' }
+
+    BidCreate:
+      type: object
+      required: [amount]
+      properties:
+        amount: { type: integer, minimum: 1 }
+        message: { type: string, nullable: true, maxLength: 2000 }
+
+    # WRAPPERS & PAGINATION
+    LoadResponse:
+      type: object
+      properties:
+        data: { $ref: '#/components/schemas/Load' }
+    BidResponse:
+      type: object
+      properties:
+        data: { $ref: '#/components/schemas/Bid' }
+
+    PaginatedLoads:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/Load' }
+        links:
+          type: object
+          properties:
+            first: { type: string, format: uri, nullable: true }
+            last: { type: string, format: uri, nullable: true }
+            prev: { type: string, format: uri, nullable: true }
+            next: { type: string, format: uri, nullable: true }
+        meta:
+          type: object
+          properties:
+            current_page: { type: integer }
+            per_page: { type: integer }
+            total: { type: integer }
+
+    PaginatedBids:
+      allOf:
+        - $ref: '#/components/schemas/PaginatedLoads'
+        - type: object
+          properties:
+            data:
+              type: array
+              items: { $ref: '#/components/schemas/Bid' }
+
+    # ERRORS
+    Error:
+      type: object
+      properties:
+        message: { type: string }
+    ValidationError:
+      allOf:
+        - $ref: '#/components/schemas/Error'
+        - type: object
+          properties:
+            errors:
+              type: object
+              additionalProperties:
+                type: array
+                items: { type: string }
