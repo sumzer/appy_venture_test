@@ -1,0 +1,559 @@
+{
+	"info": {
+		"_postman_id": "7e6ccc83-58a5-49aa-bd33-84da88e65169",
+		"name": "AppyVenture API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "6521451"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login Shipper",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set('token', jsonData.data.token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"shipper1@example.com\",\n  \"password\": \"password\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login Carrier",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set('token', jsonData.data.token);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"carrier1@example.com\",\n  \"password\": \"password\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.unset(\"token\");"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Loads",
+			"item": [
+				{
+					"name": "Create Draft Load",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"origin_country\": \"SRB\",\n  \"origin_city\": \"Maxtown\",\n  \"destination_country\": \"DEU\",\n  \"destination_city\": \"Berlin\",\n  \"pickup_date\": \"2025-09-10\",\n  \"delivery_date\": \"2025-09-12\",\n  \"weight_kg\": 1000,\n  \"status\": \"draft\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/loads",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"loads"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Open Load",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"origin_country\": \"SRB\",\n  \"origin_city\": \"Maxtown\",\n  \"destination_country\": \"DEU\",\n  \"destination_city\": \"Berlin\",\n  \"pickup_date\": \"2025-09-10\",\n  \"delivery_date\": \"2025-09-12\",\n  \"weight_kg\": 1000,\n  \"status\": \"open\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/loads",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"loads"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Loads",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Pre-request Script (bez time zone biblioteka)",
+									"function ymd(d) {",
+									"  const y = d.getFullYear();",
+									"  const m = String(d.getMonth() + 1).padStart(2, '0');",
+									"  const day = String(d.getDate()).padStart(2, '0');",
+									"  return `${y}-${m}-${day}`;",
+									"}",
+									"",
+									"const now = new Date();",
+									"const today = ymd(now);",
+									"const tomorrow = ymd(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1));",
+									"",
+									"pm.environment.set('today', today);",
+									"pm.environment.set('tomorrow', tomorrow);",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/loads?origin_country=ES&destination_country=NLD&pickup_from={{today}}&pickup_to={{tomorrow}}&delivery_from={{today}}&delivery_to={{tomorrow}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"loads"
+							],
+							"query": [
+								{
+									"key": "origin_country",
+									"value": "ES"
+								},
+								{
+									"key": "destination_country",
+									"value": "NLD"
+								},
+								{
+									"key": "pickup_from",
+									"value": "{{today}}"
+								},
+								{
+									"key": "pickup_to",
+									"value": "{{tomorrow}}"
+								},
+								{
+									"key": "delivery_from",
+									"value": "{{today}}"
+								},
+								{
+									"key": "delivery_to",
+									"value": "{{tomorrow}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Load Details",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const etag = pm.response.headers.get('ETag');",
+									"if (etag) {",
+									"    pm.collectionVariables.set(\"etag\", etag);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/loads/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"loads",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Load",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const etag = pm.response.headers.get('ETag');",
+									"if (etag) {",
+									"    pm.collectionVariables.set(\"etag\", etag);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "If-Match",
+								"value": "{{etag}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"price_expectation\": 1300,\n  \"status\": \"draft\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/loads/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"loads",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Load",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/loads/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"loads",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Bids",
+			"item": [
+				{
+					"name": "Place Bid",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"amount\": 15\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/loads/2/bids",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"loads",
+								"2",
+								"bids"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Bids for Load",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/loads/3/bids",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"loads",
+								"3",
+								"bids"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Accept Bid",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "If-Match",
+								"value": "W/\"load-3-1\"",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/bids/1/accept",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"bids",
+								"1",
+								"accept"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000"
+		},
+		{
+			"key": "base_url",
+			"value": ""
+		},
+		{
+			"key": "etag",
+			"value": "null"
+		},
+		{
+			"key": "token",
+			"value": ""
+		}
+	]
+}
