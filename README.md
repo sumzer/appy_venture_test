@@ -34,3 +34,20 @@ php artisan migrate --seed
 
 # Run
 php artisan serve
+```
+
+---
+
+## Tests (Feature)
+
+This project ships with feature tests covering the core flow:
+
+- **Happy path:** shipper creates load → carrier bids → shipper accepts → booking created → other bids rejected
+- **AuthZ:** carrier cannot create load; wrong shipper cannot accept
+- **Business rules:** duplicate bid → 409; cannot accept when already booked
+- **Filters:** `GET /api/loads?status=open`
+- **Soft delete:** owner deletes load; subsequent GET/DELETE → 404
+
+**Run all tests**
+```bash
+php artisan test
